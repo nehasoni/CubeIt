@@ -74,7 +74,7 @@ namespace CubeItMVC.Models
         public DateTime CreatedDate { get; set; }
         public DateTime ModifiedDate { get; set; }
         public bool IsActive { get; set; }
-        public int AddContentToCube(CubeContentMappingModel model, OrmLiteConnectionFactory dbFactory)
+        public int AddContentToCube(CubeContentMappingModel model, int userid, OrmLiteConnectionFactory dbFactory)
         {
             int lastInsertedId = 0;
             using (var dbConn = dbFactory.OpenDbConnection())
@@ -89,6 +89,24 @@ namespace CubeItMVC.Models
                 };
                 dbConn.Save(mapping);
                 lastInsertedId = model.Id;
+                var cubes = dbConn.Select<CubeUserMappingModel>("select * from cubeusermapping where cubeid = " + model.CubeId + " and isactive = 1");
+                var userids = cubes.Select(x => x.UserId).ToList();
+                userids.Remove(userid);
+                if (userids != null && userids.Count > 0)
+                {
+                    userids.ForEach(x =>
+                    {
+                        ContentUserMappingModel mapping1 = new ContentUserMappingModel()
+                        {
+                            ContentId = model.ContentId,
+                            UserId = x,
+                            ModifiedDate = DateTime.Now,
+                            CreatedDate = DateTime.Now,
+                            IsActive = true
+                        };
+                        dbConn.Save(mapping1);
+                    });
+                }
             }
             return lastInsertedId;
         }
@@ -118,7 +136,8 @@ namespace CubeItMVC.Models
         {
             using (var dbConn = dbFactory.OpenDbConnection())
             {
-                dbConn.ExecuteNonQuery("Update cubecontentmapping set isactive = 0 where cubeid = " +req.CubeId+ " and contentid = "+req.ContentId);
+                dbConn.ExecuteNonQuery("Update cubecontentmapping set isactive = 0 where cubeid = " + req.CubeId + " and contentid = " + req.ContentId);
+                dbConn.ExecuteNonQuery("Update contentusersmapping set isactive = 0 where userid = " + req.UserId + " and contentid = " + req.ContentId);
             }
             return true;
         }
@@ -152,7 +171,7 @@ namespace CubeItMVC.Models
         public int userid { get; set; }
         public List<ContentModel> GetAllContent(int userid, OrmLiteConnectionFactory dbFactory)
         {
-            List<ContentModel> cubes = new List<ContentModel>();
+            List<ContentModel> contents = new List<ContentModel>();
             using (var dbConn = dbFactory.OpenDbConnection())
             {
                 List<ContentUserMappingModel> list = dbConn.Select<ContentUserMappingModel>("Select * from contentusersmapping where userid = " + userid + " and isactive = 1");
@@ -160,25 +179,12 @@ namespace CubeItMVC.Models
                 string idArray = String.Join(",", ids);
                 if (idArray == "")
                 {
-                    return cubes;
+                    return contents;
                 }
                 else
-                    cubes = dbConn.Select<ContentModel>("Select * from Content where id in (" + idArray + ") and isactive = 1");
-                var cubesList =  dbConn.Select<CubeUserMappingModel>("Select * from cubeusermapping where id ="+userid+ " and isactive = 1");
-                string idArray1 = String.Join(",", cubesList.Select(x=>x.CubeId).ToList());
-                if (idArray1 != "")
-                {
-                    var cubeids = dbConn.Select<CubeContentMappingModel>("Select * from cubecontentmapping where cubeid in (" + idArray1 + ") and isactive = 1");
-                    string idArray2 = String.Join(",", cubeids.Select(x => x.ContentId).ToList());
-                    if (idArray2 != "")
-                    {
-                        var cubes1 = dbConn.Select<ContentModel>("Select * from Content where id in (" + idArray2 + ") and isactive = 1");
-                        cubes.AddRange(cubes1);
-                    }
-                    
-                }
-                
-                return cubes;
+                    contents = dbConn.Select<ContentModel>("Select * from Content where id in (" + idArray + ") and isactive = 1");
+
+                return contents;
             }
         }
     }

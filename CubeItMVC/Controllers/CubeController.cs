@@ -74,7 +74,7 @@ namespace CubeItMVC.Controllers
                 CreatedDate = DateTime.Now,
                 ModifiedDate = DateTime.Now
             };
-            var res = model.AddContentToCube(model, dbFactory);
+            var res = model.AddContentToCube(model, req.UserId, dbFactory);
             response.contentid = req.content_id;
             response.id = res;
             response.cubeid = req.CubeId;
