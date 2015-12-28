@@ -56,13 +56,13 @@ namespace CubeItMVC
                name: "deletecontent",
                url: "user/{userid}/cube/{cubeid}/content/{contentid}",
                defaults: new { controller = "Cube", action = "DeleteContent" },
-               constraints: new { HttpMethod = new HttpMethodConstraint(new[] { "GET" })}
+               constraints: new { HttpMethod = new HttpMethodConstraint(new[] { "DELETE" })}
            );
             routes.MapRoute(
                name: "deletecube",
                url: "user/{userid}/cube/{cubeid}",
                defaults: new { controller = "Cube", action = "DeleteCube" },
-               constraints: new { HttpMethod = new HttpMethodConstraint(new[] { "GET" }) }
+               constraints: new { HttpMethod = new HttpMethodConstraint(new[] { "DELETE" }) }
            );
            
             routes.MapRoute(

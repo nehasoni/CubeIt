@@ -82,14 +82,14 @@ namespace CubeItMVC.Controllers
             return Json(response);
         }
 
-        [HttpGet]
+        [HttpDelete]
         public JsonResult DeleteContent(DeleteContentFromCube req)
         {
             req.DeleteContent(req, dbFactory);
             return Json("true", JsonRequestBehavior.AllowGet);
         }
 
-        [HttpGet]
+        [HttpDelete]
         public JsonResult DeleteCube(DeleteCube req)
         {
             req.DeleteCubeForUser(req, dbFactory);
